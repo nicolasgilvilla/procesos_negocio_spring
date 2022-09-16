@@ -14,12 +14,13 @@ public class UserController {
     @GetMapping(value = "/user/{id}")
     public User getUser(@PathVariable Long id) {
         User user = new User();
+        user.setId(id);
         user.setName("Nicolas");
         user.setLastName("Gil");
         user.setNumberPhone("3106336353");
         user.setAddress("Barrio Peñon");
         user.setDocument("123456");
-        user.setDateOfBirth(new Date("11/9/2021"));
+        user.setDateOfBirth(new Date(2000, 04, 26));
         return user;
     }
 }

@@ -3,6 +3,8 @@ package com.procces.business.app.controllers;
 import com.procces.business.app.models.User;
 import com.procces.business.app.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,62 +18,91 @@ public class UserController {
     private UserRepository userRepository;
 
     @GetMapping(value = "/user/{id}")
-    public Optional<User> getUser(@PathVariable Long id) {
-        return userRepository.findById(id);
+    public ResponseEntity getUser(@PathVariable Long id) {
+        Optional<User> user = userRepository.findById(id);
+        if (user.isPresent()) {
+            return new ResponseEntity(user, HttpStatus.OK);
+        }
+        return ResponseEntity.notFound().build();
+
     }
 
     @PostMapping(value = "/user")
-    public User createUser(@RequestBody User user) {
-        userRepository.save(user);
-        return user;
+    public ResponseEntity createUser(@RequestBody User user) {
+        try {
+            userRepository.save(user);
+            return new ResponseEntity(user, HttpStatus.CREATED);
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @GetMapping(value = "/users")
-    public List<User> listUser() {
-        return userRepository.findAll();
+    public ResponseEntity listUser() {
+        List<User> listUsers = userRepository.findAll();
+        if (!listUsers.isEmpty()) {
+            return new ResponseEntity<>(listUsers, HttpStatus.OK);
+        }
+        return ResponseEntity.notFound().build();
     }
 
     @GetMapping(value = "/user/{name}/{lastName}")
-    public List<User> getByNameAndLastName(@PathVariable String name, @PathVariable String lastName) {
-        return userRepository.findAllByNameAndLastName(name, lastName);
+    public ResponseEntity getByNameAndLastName(@PathVariable String name, @PathVariable String lastName) {
+        List<User> listUsersForNameAndLastName = userRepository.findAllByNameAndLastName(name, lastName);
+        if (!listUsersForNameAndLastName.isEmpty()) {
+            return new ResponseEntity<>(listUsersForNameAndLastName, HttpStatus.OK);
+        }
+        return ResponseEntity.notFound().build();
     }
 
     @GetMapping(value = "/user/lastname/{lastName}")
-    public List<User> getByLastName(@PathVariable String lastName) {
-        return userRepository.findAllByLastName(lastName);
+    public ResponseEntity getByLastName(@PathVariable String lastName) {
+        List<User> listUsersForLastName = userRepository.findAllByLastName(lastName);
+        if (!listUsersForLastName.isEmpty()) {
+            return new ResponseEntity<>(listUsersForLastName, HttpStatus.OK);
+        }
+        return ResponseEntity.notFound().build();
     }
 
     @GetMapping(value = "/user/name/{name}")
-    public List<User> getByName(@PathVariable String name) {
-        return userRepository.findAllByName(name);
+    public ResponseEntity getByName(@PathVariable String name) {
+        List<User> listUsersForName = userRepository.findAllByName(name);
+        if (!listUsersForName.isEmpty()) {
+            return new ResponseEntity<>(listUsersForName, HttpStatus.OK);
+        }
+        return ResponseEntity.notFound().build();
     }
 
     @PutMapping(value = "/user/{id}")
-    public User updateUser(@PathVariable Long id, @RequestBody User user) {
-        User _user = userRepository.findById(id).get();
+    public ResponseEntity updateUser(@PathVariable Long id, @RequestBody User user) {
+        Optional<User> userFind = userRepository.findById(id);
         try {
-            _user.setName(user.getName());
-            _user.setLastName(user.getLastName());
-            _user.setDocument(user.getDocument());
-            _user.setAddress(user.getAddress());
-            _user.setDateOfBirth(user.getDateOfBirth());
-            _user.setNumberPhone(user.getNumberPhone());
-            userRepository.save(_user);
-            return _user;
+            if (userFind.isPresent()) {
+                User userPresent = userFind.get();
+                userPresent.setName(user.getName());
+                userPresent.setLastName(user.getLastName());
+                userPresent.setDocument(user.getDocument());
+                userPresent.setAddress(user.getAddress());
+                userPresent.setDateOfBirth(user.getDateOfBirth());
+                userPresent.setNumberPhone(user.getNumberPhone());
+                userRepository.save(userPresent);
+                return new ResponseEntity(userPresent, HttpStatus.OK);
+            } else {
+                return ResponseEntity.notFound().build();
+            }
         } catch (Exception e) {
-            return null;
+            return ResponseEntity.badRequest().build();
         }
     }
 
     @DeleteMapping(value = "/user/{id}")
-    public User deleteUser(@PathVariable Long id) {
-        User user = userRepository.findById(id).get();
-        try {
-            userRepository.delete(user);
-            return user;
-        } catch (Exception e) {
-            return null;
+    public ResponseEntity deleteUser(@PathVariable Long id) {
+        Optional<User> user = userRepository.findById(id);
+        if (user.isPresent()) {
+            userRepository.delete(user.get());
+            return ResponseEntity.noContent().build();
         }
+        return ResponseEntity.notFound().build();
     }
 
 }

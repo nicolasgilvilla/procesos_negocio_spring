@@ -2,7 +2,6 @@ package com.procces.business.app.controllers;
 
 import com.procces.business.app.models.User;
 import com.procces.business.app.services.UserService;
-import com.procces.business.app.services.UserServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

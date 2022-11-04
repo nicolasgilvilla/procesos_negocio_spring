@@ -25,5 +25,7 @@ public interface UserService {
 
     ResponseEntity<User> deleteUser(Long id);
 
+    ResponseEntity login(String email, String password);
+
 }
 

@@ -2,9 +2,12 @@ package com.procces.business.app.services;
 
 import com.procces.business.app.models.User;
 import com.procces.business.app.repository.UserRepository;
+import com.procces.business.app.utils.JWTUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,6 +21,12 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private JWTUtil jwtUtil;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @GetMapping(value = "/user/{id}")
     public ResponseEntity<User> getUser(@PathVariable Long id) {
         Optional<User> user = userRepository.findById(id);
@@ -30,6 +39,7 @@ public class UserServiceImpl implements UserService {
     @PostMapping(value = "/user")
     public ResponseEntity<User> createUser(@Valid @RequestBody User user) {
         try {
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
             userRepository.save(user);
             return new ResponseEntity<>(user, HttpStatus.CREATED);
         } catch (Exception e) {
@@ -85,6 +95,8 @@ public class UserServiceImpl implements UserService {
                 userPresent.setAddress(user.getAddress());
                 userPresent.setDateOfBirth(user.getDateOfBirth());
                 userPresent.setNumberPhone(user.getNumberPhone());
+                userPresent.setEmail(user.getEmail());
+                userPresent.setPassword(passwordEncoder.encode(user.getPassword()));
                 userRepository.save(userPresent);
                 return new ResponseEntity<>(userPresent, HttpStatus.OK);
             } else {
@@ -101,6 +113,20 @@ public class UserServiceImpl implements UserService {
         if (user.isPresent()) {
             userRepository.delete(user.get());
             return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.notFound().build();
+    }
+
+    @Override
+    public ResponseEntity login(String email, String password) {
+        try {
+            User user = userRepository.findByEmail(email);
+            if (passwordEncoder.matches(password, user.getPassword())) {
+                String token = jwtUtil.create(String.valueOf(user.getId()), user.getEmail());
+                return ResponseEntity.ok(token);
+            }
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
         }
         return ResponseEntity.notFound().build();
     }
